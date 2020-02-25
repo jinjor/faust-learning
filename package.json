@@ -1,0 +1,24 @@
+{
+  "name": "faust-learning",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {},
+  "devDependencies": {
+    "chokidar-cli": "^2.1.0",
+    "http-server": "^0.12.1",
+    "npm-run-all": "^4.1.5",
+    "typescript": "^3.8.2"
+  },
+  "scripts": {
+    "start": "run-p watch:* server",
+    "build:dsp": "faust2wasm -worklet src/*.dsp && mv *.{js,wasm} public/assets/js/",
+    "build:ts": "tsc -p src",
+    "watch:dsp": "chokidar \"src/*.dsp\" -c \"npm run build:dsp\"",
+    "watch:ts": "chokidar \"src/*.ts\" -c \"npm run build:ts\"",
+    "server": "http-server -c-1",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
