@@ -1,4 +1,4 @@
-import { FaustNode } from "./faust.js";
+import { FaustNode, FaustNodeDescription, UI, ui } from "./faust.js";
 
 const assetPath = "assets/js";
 const nodeName = "noise";
@@ -23,14 +23,14 @@ function updateElements() {
   paramsContainer.style.opacity = playing ? "1" : "0.5";
 }
 function createUI(dsp: FaustNode): HTMLElement {
-  const json = JSON.parse(dsp.getJSON());
+  const json = JSON.parse(dsp.getJSON()) as FaustNodeDescription;
   const ui = json.ui[0];
   if (ui.type === "vgroup" || ui.type === "hgroup") {
     return createGroup(ui);
   }
   return null;
 }
-function createGroup(ui: any): HTMLElement {
+function createGroup(ui: ui.HGroup | ui.VGroup): HTMLElement {
   const groupContainer = document.createElement("div");
 
   const label = document.createElement("label");
@@ -49,7 +49,7 @@ function createGroup(ui: any): HTMLElement {
       label.textContent = item.label;
       control.appendChild(label);
 
-      const input = document.createElement("input");
+      const input = document.createElement("input") as any;
       input.type = "range";
       input.min = item.min;
       input.max = item.max;
