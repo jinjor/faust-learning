@@ -26,11 +26,11 @@ function createUI(dsp: FaustNode): HTMLElement {
   const json = JSON.parse(dsp.getJSON());
   const ui = json.ui[0];
   if (ui.type === "vgroup" || ui.type === "hgroup") {
-    return createGroup(ui, 0);
+    return createGroup(ui);
   }
   return null;
 }
-function createGroup(ui: any, indent: number): HTMLElement {
+function createGroup(ui: any): HTMLElement {
   const groupContainer = document.createElement("div");
 
   const label = document.createElement("label");
@@ -38,11 +38,9 @@ function createGroup(ui: any, indent: number): HTMLElement {
   label.textContent = ui.label;
   groupContainer.appendChild(label);
 
-  indent++;
-
   for (const item of ui.items) {
     const control = document.createElement("div");
-    control.style.paddingLeft = indent * 20 + "px";
+    control.style.paddingLeft = "20px";
 
     if (item.type === "hslider" || item.type === "vslider") {
       const label = document.createElement("label");
@@ -92,7 +90,7 @@ function createGroup(ui: any, indent: number): HTMLElement {
       };
       control.appendChild(input);
     } else if (item.type === "vgroup" || item.type === "hgroup") {
-      control.appendChild(createGroup(item, indent));
+      control.appendChild(createGroup(item));
     }
     groupContainer.appendChild(control);
   }
