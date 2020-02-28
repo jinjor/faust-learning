@@ -33,25 +33,39 @@ function createGroup(dsp: FaustNode): HTMLElement {
     groupContainer.appendChild(label);
 
     for (const item of ui.items) {
+      const control = document.createElement("div");
+
       const label = document.createElement("label");
       label.style.display = "inline-block";
       label.style.width = "200px";
       label.textContent = item.label;
-
-      const input = document.createElement("input");
-      input.type = "range";
-      input.min = item.min;
-      input.max = item.max;
-      input.value = item.init;
-      input.step = item.step;
-      input.oninput = (e: InputEvent) => {
-        const value = parseFloat((e.target as HTMLInputElement).value);
-        dsp.setParamValue(item.address, value);
-      };
-
-      const control = document.createElement("div");
       control.appendChild(label);
-      control.appendChild(input);
+
+      if (item.type === "hslider") {
+        const input = document.createElement("input");
+        input.type = "range";
+        input.min = item.min;
+        input.max = item.max;
+        input.value = item.init;
+        input.step = item.step;
+        input.oninput = (e: InputEvent) => {
+          const value = parseFloat((e.target as HTMLInputElement).value);
+          dsp.setParamValue(item.address, value);
+        };
+        control.appendChild(input);
+      } else if (item.type === "button") {
+        const input = document.createElement("input");
+        input.type = "submit";
+        input.value = String(0);
+        input.onclick = e => {
+          e.preventDefault();
+          const value = 1 - parseInt((e.target as HTMLInputElement).value);
+          dsp.setParamValue(item.address, value);
+          input.value = String(value);
+        };
+        control.appendChild(input);
+      }
+
       groupContainer.appendChild(control);
     }
     return groupContainer;
