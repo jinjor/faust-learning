@@ -9,74 +9,99 @@ let dsp: FaustNode = null;
 let playing = false;
 
 // Elements
-const playButton = document.getElementById("play") as HTMLButtonElement;
+const startButton = document.getElementById("start") as HTMLButtonElement;
 const stopButton = document.getElementById("stop") as HTMLButtonElement;
 const paramsContainer = document.getElementById("params");
 
 // Update Elements
 function updateElements() {
   if (dsp != null && !paramsContainer.hasChildNodes()) {
-    paramsContainer.appendChild(createGroup(dsp));
+    paramsContainer.appendChild(createUI(dsp));
   }
-  playButton.style.display = playing ? "none" : null;
+  startButton.style.display = playing ? "none" : null;
   stopButton.style.display = playing ? null : "none";
+  paramsContainer.style.opacity = playing ? "1" : "0.5";
 }
-function createGroup(dsp: FaustNode): HTMLElement {
+function createUI(dsp: FaustNode): HTMLElement {
   const json = JSON.parse(dsp.getJSON());
   const ui = json.ui[0];
-  if (ui.type === "vgroup") {
-    const groupContainer = document.createElement("div");
+  if (ui.type === "vgroup" || ui.type === "hgroup") {
+    return createGroup(ui, 0);
+  }
+  return null;
+}
+function createGroup(ui: any, indent: number): HTMLElement {
+  const groupContainer = document.createElement("div");
 
-    const label = document.createElement("label");
-    label.style.display = "block";
-    label.textContent = ui.label;
-    groupContainer.appendChild(label);
+  const label = document.createElement("label");
+  label.style.display = "block";
+  label.textContent = ui.label;
+  groupContainer.appendChild(label);
 
-    for (const item of ui.items) {
-      const control = document.createElement("div");
+  indent++;
 
+  for (const item of ui.items) {
+    const control = document.createElement("div");
+    control.style.paddingLeft = indent * 20 + "px";
+
+    if (item.type === "hslider" || item.type === "vslider") {
       const label = document.createElement("label");
       label.style.display = "inline-block";
       label.style.width = "200px";
       label.textContent = item.label;
       control.appendChild(label);
 
-      if (item.type === "hslider") {
-        const input = document.createElement("input");
-        input.type = "range";
-        input.min = item.min;
-        input.max = item.max;
-        input.value = item.init;
-        input.step = item.step;
-        input.oninput = (e: InputEvent) => {
-          const value = parseFloat((e.target as HTMLInputElement).value);
-          dsp.setParamValue(item.address, value);
-        };
-        control.appendChild(input);
-      } else if (item.type === "button") {
-        const input = document.createElement("input");
-        input.type = "submit";
-        input.value = String(0);
-        input.onclick = e => {
-          e.preventDefault();
-          const value = 1 - parseInt((e.target as HTMLInputElement).value);
-          dsp.setParamValue(item.address, value);
-          input.value = String(value);
-        };
-        control.appendChild(input);
-      }
+      const input = document.createElement("input");
+      input.type = "range";
+      input.min = item.min;
+      input.max = item.max;
+      input.value = item.init;
+      input.step = item.step;
+      input.oninput = (e: InputEvent) => {
+        const value = parseFloat((e.target as HTMLInputElement).value);
+        dsp.setParamValue(item.address, value);
+      };
+      control.appendChild(input);
+    } else if (item.type === "button") {
+      const label = document.createElement("label");
+      label.style.display = "inline-block";
+      label.style.width = "200px";
+      label.textContent = item.label;
+      control.appendChild(label);
+      const input = document.createElement("input");
+      input.type = "button";
+      input.onmousedown = e => {
+        dsp.setParamValue(item.address, 1);
+      };
+      input.onmouseup = e => {
+        dsp.setParamValue(item.address, 0);
+      };
+      control.appendChild(input);
+    } else if (item.type === "checkbox") {
+      const label = document.createElement("label");
+      label.style.display = "inline-block";
+      label.style.width = "200px";
+      label.textContent = item.label;
+      control.appendChild(label);
 
-      groupContainer.appendChild(control);
+      const input = document.createElement("input");
+      input.type = "checkbox";
+      input.checked = false;
+      input.onclick = e => {
+        dsp.setParamValue(item.address, input.checked ? 1 : 0);
+      };
+      control.appendChild(input);
+    } else if (item.type === "vgroup" || item.type === "hgroup") {
+      control.appendChild(createGroup(item, indent));
     }
-    return groupContainer;
+    groupContainer.appendChild(control);
   }
-  return null;
+  return groupContainer;
 }
 
 // Attach Events
-playButton.addEventListener("click", async () => {
+startButton.addEventListener("click", async () => {
   await audioCtx.resume();
-
   dsp.connect(audioCtx.destination);
   playing = true;
   updateElements();
