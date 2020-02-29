@@ -1,4 +1,5 @@
 import { FaustNode, FaustNodeDescription, UI } from "./faust.js";
+const Keyboard = customElements.get("x-keyboard"); // this is closed source yet.
 
 const assetPath = "assets/js";
 const nodeName = "noise";
@@ -12,6 +13,7 @@ let playing = false;
 const startButton = document.getElementById("start") as HTMLButtonElement;
 const stopButton = document.getElementById("stop") as HTMLButtonElement;
 const paramsContainer = document.getElementById("params");
+const keyboardContainer = document.getElementById("keyboard");
 
 // Update Elements
 function updateElements() {
@@ -23,6 +25,17 @@ function updateElements() {
   startButton.style.display = playing ? "none" : null;
   stopButton.style.display = playing ? null : "none";
   paramsContainer.style.opacity = playing ? "1" : "0.5";
+  if (!keyboardContainer.hasChildNodes()) {
+    const el = new Keyboard({
+      onDown: async (e: any) => {
+        console.log("down", e);
+      },
+      onUp: (e: any) => {
+        console.log("up", e);
+      }
+    });
+    keyboardContainer.appendChild(el);
+  }
 }
 
 // UI

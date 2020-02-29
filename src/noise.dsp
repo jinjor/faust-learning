@@ -4,6 +4,8 @@ declare copyright "(c)jinjor 2020";
 declare version "0.0.1";
 declare license "MIT";
 
+declare options "[midi:on]";
+
 import("stdfaust.lib");
 
 constant = environment {
