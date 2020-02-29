@@ -1,4 +1,36 @@
+declare name "My DSP";
+declare author "jinjor";
+declare copyright "(c)jinjor 2020";
+declare version "0.0.1";
+declare license "MIT";
+
 import("stdfaust.lib");
+
+// Function Definitions 
+// linear2db(x) = 20*log10(x);
+// linear2db = \(x).(20*log10(x));
+
+// Pattern matching
+// duplicate(1,x) = x;
+// duplicate(n,x) = x, duplicate(n-1,x);
+// process = duplicate(5,no.noise);
+
+// Recursive (timer)
+// process = _~+(1);
+
+// Peak Equalizer
+// nBands = 8;
+// filterBank(N) = hgroup("Filter Bank",seq(i,N,oneBand(i)))
+// with {
+//     oneBand(j) = vgroup("[%j]Band %a",fi.peak_eq(l,f,b))
+//     with {
+//         a = j+1; // just so that band numbers don't start at 0
+//         l = vslider("[2]Level[unit:db]",0,-70,12,0.01) : si.smoo;
+//         f = nentry("[1]Freq",(80+(1000*8/N*(j+1)-80)),20,20000,0.01) : si.smoo;
+//         b = f/hslider("[0]Q[style:knob]",1,1,50,0.01) : si.smoo;
+//     };
+// };
+// process = filterBank(nBands);
 
 gate = button("[0]gate");
 

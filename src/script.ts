@@ -71,6 +71,9 @@ function createGroup(ui: ui.HGroup | ui.VGroup): HTMLElement {
       input.onmousedown = e => {
         dsp.setParamValue(item.address, 1);
       };
+      input.onmouseleave = e => {
+        dsp.setParamValue(item.address, 0);
+      };
       input.onmouseup = e => {
         dsp.setParamValue(item.address, 0);
       };
