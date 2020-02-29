@@ -6,6 +6,11 @@ declare license "MIT";
 
 import("stdfaust.lib");
 
+constant = environment {
+  pi = 3.14159;
+  e = 2,718;
+};
+
 // Function Definitions 
 // linear2db(x) = 20*log10(x);
 // linear2db = \(x).(20*log10(x));
@@ -30,7 +35,37 @@ with {
         b = f/hslider("[0]Q[style:knob]",1,1,50,0.01) : si.smoo;
     };
 };
-// process = filterBank(nBands);
+
+// AM Synth
+// freq = hslider("[0]freq",440,50,3000,0.01);
+// gain = hslider("[1]gain",1,0,1,0.01);
+// shift = hslider("[2]shift",0,0,1,0.01);
+// gate = button("[3]gate");
+// envelope = gain*gate : si.smoo;
+// nOscs = 4;
+// process = prod(i,nOscs,os.osc(freq*(i+1+shift)))*envelope;
+
+// Pink Noise
+// pink = f : + ~ g 
+// with {
+//   f(x) = 0.04957526213389*x - 0.06305581334498*x' + 0.01483220320740*x'';
+//     g(x) = 1.80116083982126*x - 0.80257737639225*x';
+// };
+
+// Simple Envelope
+// ar(a,r,g) = v
+// letrec {
+//   'n = (n+1) * (g<=g');
+//   'v = max(0, v + (n<a)/a - (n>=a)/r) * (g<=g');
+// };
+// gate = button("gate");
+// process = os.osc(440)*ar(1000,1000,gate);
+
+// Read-only Table (triangle)
+// triangleWave = waveform{0,0.5,1,0.5,0,-0.5,-1,-.5};
+// triangleOsc(f) = triangleWave,int(os.phasor(8,f)) : rdtable;
+// f = hslider("freq",440,50,2000,0.01);
+// process = triangleOsc(f);
 
 gate = button("[0]gate");
 
