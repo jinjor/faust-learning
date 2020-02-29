@@ -2,7 +2,8 @@ import { FaustNode, FaustNodeDescription, UI } from "./faust.js";
 const Keyboard = customElements.get("x-keyboard"); // this is closed source yet.
 
 const assetPath = "assets/js";
-const nodeName = "noise";
+// const nodeName = "noise";
+const nodeName = "midi";
 
 // State
 let audioCtx = new AudioContext();
@@ -19,8 +20,9 @@ const keyboardContainer = document.getElementById("keyboard");
 function updateElements() {
   if (dsp != null && !paramsContainer.hasChildNodes()) {
     const json = JSON.parse(dsp.getJSON()) as FaustNodeDescription;
-    const ui = json.ui[0];
-    paramsContainer.appendChild(createUI(ui));
+    for (const ui of json.ui) {
+      paramsContainer.appendChild(createUI(ui));
+    }
   }
   startButton.style.display = playing ? "none" : null;
   stopButton.style.display = playing ? null : "none";
@@ -28,9 +30,16 @@ function updateElements() {
   if (!keyboardContainer.hasChildNodes()) {
     const el = new Keyboard({
       onDown: async (e: any) => {
+        // not supported yet
+        // dsp.midiMessage([0x90, e.note, 127]);
+        dsp.midiMessage([0xb0, 16, e.note]);
+        dsp.setParamValue("/midi/gate", 1);
         console.log("down", e);
       },
       onUp: (e: any) => {
+        // not supported yet
+        // dsp.midiMessage([0x80, e.note, 127]);
+        dsp.setParamValue("/midi/gate", 0);
         console.log("up", e);
       }
     });
