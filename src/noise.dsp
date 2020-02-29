@@ -80,6 +80,18 @@ eq = filterBank(nBands);
 // s2 = nentry("Selector",0,0,1,1);
 // sig = os.osc(440),os.sawtooth(440) : select2(s2);
 
+// Global UI Metadata
+// [style:knob]
+// [style:menu]
+// [style:radio]
+// [style:led]
+// [style:numerical]
+// [unit:dB]
+// [unit:xx]
+// [scale:xx] log, exp
+// [tooltip:xx]
+// [hidden:xx]
+
 adsrGroup(x) = vgroup("[1]ADSR",x);
 a = adsrGroup(hslider("[1]A",0.01,0.01,1,0.01) : si.smoo);
 d = adsrGroup(hslider("[2]D",0.01,0.01,1,0.01) : si.smoo);

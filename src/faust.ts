@@ -185,4 +185,29 @@ export interface FaustNode extends AudioWorkletNode {
    * @param value - the MIDI controller value (-1..1)
    */
   pitchWheel(channel: number, wheel: number): void;
+
+  /**
+   * Generic MIDI message handler.
+   */
+  midiMessage(data: number[]): void;
+
+  // For WAP
+  onMidi(data: number[]): void;
+
+  /**
+   * @returns {Object} describes the path for each available param and its current value
+   */
+  getState(): Promise<any>;
+
+  /**
+   * Sets each params with the value indicated in the state object
+   * @param {Object} state
+   */
+  setState(state: any): Promise<void>;
+
+  /**
+   * A different call closer to the preset management
+   * @param {Object} patch to assign as a preset to the node
+   */
+  setPatch(patch: any): void;
 }
