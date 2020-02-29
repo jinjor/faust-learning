@@ -23,6 +23,11 @@ export namespace ui {
     label: string;
     items: UI[];
   };
+  export type TGroup = {
+    type: "tgroup";
+    label: string;
+    items: UI[];
+  };
   export type HSlider = {
     type: "hslider";
     label: string;
@@ -70,16 +75,37 @@ export namespace ui {
     index: number;
     meta: { [key: string]: string }[];
   };
+  export type HBarGraph = {
+    type: "hbargraph";
+    label: string;
+    address: string;
+    index: number;
+    meta: { [key: string]: string }[];
+    min: number;
+    max: number;
+  };
+  export type VBarGraph = {
+    type: "vbargraph";
+    label: string;
+    address: string;
+    index: number;
+    meta: { [key: string]: string }[];
+    min: number;
+    max: number;
+  };
 }
 
 export type UI =
   | ui.VGroup
   | ui.HGroup
+  | ui.TGroup
   | ui.HSlider
   | ui.VSlider
   | ui.NEntry
   | ui.Button
-  | ui.Checkbox;
+  | ui.Checkbox
+  | ui.HBarGraph
+  | ui.VBarGraph;
 
 export interface Descriptor {
   [key: string]: { minValue: number; maxValue: number; defaultValue: number };

@@ -24,17 +24,18 @@ constant = environment {
 // process = _~+(1);
 
 // Peak Equalizer
-nBands = 3;
+nBands = 8;
 filterBank(N) = hgroup("Filter Bank",seq(i,N,oneBand(i)))
 with {
     oneBand(j) = vgroup("[%j]Band %a",fi.peak_eq(l,f,b))
     with {
         a = j+1; // just so that band numbers don't start at 0
         l = vslider("[2]Level[unit:db]",0,-70,12,0.01) : si.smoo;
-        f = nentry("[1]Freq",(80+(1000*8/N*(j+1)-80)),20,20000,0.01) : si.smoo;
+        f = hslider("[1]Freq",(80+(1000*8/N*(j+1)-80)),20,20000,0.01) : si.smoo;
         b = f/hslider("[0]Q[style:knob]",1,1,50,0.01) : si.smoo;
     };
 };
+bandFilter = filterBank(nBands);
 
 // AM Synth
 // freq = hslider("[0]freq",440,50,3000,0.01);
@@ -67,12 +68,25 @@ with {
 // f = hslider("freq",440,50,2000,0.01);
 // process = triangleOsc(f);
 
+// Read-only Table (sine)
+// import("stdfaust.lib");
+// sineWave(tablesize) = float(ba.time)*(2.0*ma.PI)/float(tablesize) : sin;
+// tableSize = 1 << 16;
+// triangleOsc(f) = tableSize,sineWave(tableSize),int(os.phasor(tableSize,f)) : rdtable;
+// f = hslider("freq",440,50,2000,0.01);
+// process = triangleOsc(f);
+
+// Select
+// s2 = nentry("Selector",0,0,1,1);
+// sig = os.osc(440),os.sawtooth(440) : select2(s2);
+
 gate = button("[0]gate");
 
-a = hslider("[1]A",0.01,0.01,1,0.01);
-d = hslider("[2]D",0.01,0.01,1,0.01);
-s = hslider("[3]S",0.8,0,1,0.01);
-r = hslider("[4]R",0.1,0.01,1,0.01);
+adsrGroup(x) = tgroup("ADSR",x);
+a = adsrGroup(hslider("[1]A",0.01,0.01,1,0.01) : si.smoo);
+d = adsrGroup(hslider("[2]D",0.01,0.01,1,0.01) : si.smoo);
+s = adsrGroup(hslider("[3]S",0.8,0,1,0.01) : si.smoo);
+r = adsrGroup(hslider("[4]R",0.1,0.01,1,0.01) : si.smoo);
 gain = hslider("gain",0.5,0,1,0.01);
 envelope = en.adsr(a,d,s,r,gate)*gain;
 
@@ -84,4 +98,4 @@ reverb = dm.zita_light;
 
 // bypass = checkbox("[4]bypass") * (-1) + 1: si.smoo;
 // process = no.noise * envelope : fi.resonlp(ctFreq,q,filterGain) <: reverb;
-process = os.sawtooth(442) * envelope : fi.resonlp(ctFreq,q,filterGain) : filterBank(nBands) <: reverb;
+process = os.sawtooth(442) * envelope : fi.resonlp(ctFreq,q,filterGain) : bandFilter <: reverb;

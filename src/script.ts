@@ -1,4 +1,4 @@
-import { FaustNode, FaustNodeDescription, UI, ui } from "./faust.js";
+import { FaustNode, FaustNodeDescription, UI } from "./faust.js";
 
 const assetPath = "assets/js";
 const nodeName = "noise";
@@ -16,95 +16,122 @@ const paramsContainer = document.getElementById("params");
 // Update Elements
 function updateElements() {
   if (dsp != null && !paramsContainer.hasChildNodes()) {
-    paramsContainer.appendChild(createUI(dsp));
+    const json = JSON.parse(dsp.getJSON()) as FaustNodeDescription;
+    const ui = json.ui[0];
+    paramsContainer.appendChild(createUI(ui));
   }
   startButton.style.display = playing ? "none" : null;
   stopButton.style.display = playing ? null : "none";
   paramsContainer.style.opacity = playing ? "1" : "0.5";
 }
-function createUI(dsp: FaustNode): HTMLElement {
-  const json = JSON.parse(dsp.getJSON()) as FaustNodeDescription;
-  const ui = json.ui[0];
-  if (ui.type === "vgroup" || ui.type === "hgroup") {
-    return createGroup(ui);
-  }
-  return null;
-}
-function createGroup(ui: ui.HGroup | ui.VGroup): HTMLElement {
-  const groupContainer = document.createElement("div");
 
-  const label = document.createElement("label");
-  label.style.display = "block";
-  label.textContent = ui.label;
-  groupContainer.appendChild(label);
+// UI
+function createUI(ui: UI): HTMLElement {
+  if (ui.type === "vgroup" || ui.type === "hgroup" || ui.type === "tgroup") {
+    const container = document.createElement("div");
 
-  for (const item of ui.items) {
-    const control = document.createElement("div");
-    control.style.paddingLeft = "20px";
+    const label = document.createElement("label");
+    label.style.display = "block";
+    label.textContent = ui.label;
+    container.appendChild(label);
 
-    if (
-      item.type === "hslider" ||
-      item.type === "vslider" ||
-      item.type === "nentry"
-    ) {
-      const label = document.createElement("label");
-      label.style.display = "inline-block";
-      label.style.width = "200px";
-      label.textContent = item.label;
-      control.appendChild(label);
+    const list = document.createElement("div");
+    list.style.display = "inline-grid";
+    list.style.paddingLeft = "20px";
 
-      const input = document.createElement("input") as any;
-      input.type = "range";
-      input.min = item.min;
-      input.max = item.max;
-      input.value = item.init;
-      input.step = item.step;
-      input.oninput = (e: InputEvent) => {
-        const value = parseFloat((e.target as HTMLInputElement).value);
-        dsp.setParamValue(item.address, value);
-      };
-      control.appendChild(input);
-    } else if (item.type === "button") {
-      const label = document.createElement("label");
-      label.style.display = "inline-block";
-      label.style.width = "200px";
-      label.textContent = item.label;
-      control.appendChild(label);
-      const input = document.createElement("input");
-      input.type = "button";
-      input.onmousedown = e => {
-        dsp.setParamValue(item.address, 1);
-      };
-      input.onmouseleave = e => {
-        dsp.setParamValue(item.address, 0);
-      };
-      input.onmouseup = e => {
-        dsp.setParamValue(item.address, 0);
-      };
-      control.appendChild(input);
-    } else if (item.type === "checkbox") {
-      const label = document.createElement("label");
-      label.style.display = "inline-block";
-      label.style.width = "200px";
-      label.textContent = item.label;
-      control.appendChild(label);
-
-      const input = document.createElement("input");
-      input.type = "checkbox";
-      input.checked = false;
-      input.onclick = e => {
-        dsp.setParamValue(item.address, input.checked ? 1 : 0);
-      };
-      control.appendChild(input);
-    } else if (item.type === "vgroup" || item.type === "hgroup") {
-      control.appendChild(createGroup(item));
-    } else {
-      console.log(`type ${(item as any).type} is not implemented yet`);
-      console.log(item);
+    if (ui.type === "hgroup") {
+      list.style.gridAutoFlow = "column";
     }
-    groupContainer.appendChild(control);
+    for (const item of ui.items) {
+      const child = createUI(item);
+      if (ui.type === "hgroup") {
+        child.style.display = "inline-block";
+        child.style.maxWidth = "200px";
+      }
+      list.appendChild(child);
+    }
+    container.appendChild(list);
+    return container;
+  } else if (
+    ui.type === "hslider" ||
+    ui.type === "vslider" ||
+    ui.type === "nentry"
+  ) {
+    const container = document.createElement("div");
+
+    const label = document.createElement("label");
+    label.textContent = ui.label;
+    if (ui.type === "vslider") {
+      label.style.display = "block";
+      label.style.width = "120px";
+      // input.style.appearance = "slider-vertical";
+      label.style.display = "block";
+    } else if (ui.type === "hslider") {
+      label.style.display = "inline-block";
+      label.style.width = "200px";
+    }
+
+    const input = document.createElement("input") as any;
+    input.type = "range";
+    if (ui.type === "vslider") {
+      input.style["-webkit-appearance"] = "slider-vertical";
+    }
+    input.min = ui.min;
+    input.max = ui.max;
+    input.value = ui.init;
+    input.step = ui.step;
+    input.oninput = (e: InputEvent) => {
+      const value = parseFloat((e.target as HTMLInputElement).value);
+      dsp.setParamValue(ui.address, value);
+    };
+    container.appendChild(label);
+    container.appendChild(input);
+    return container;
+  } else if (ui.type === "button") {
+    const container = document.createElement("div");
+
+    const label = document.createElement("label");
+    label.style.display = "inline-block";
+    label.style.width = "200px";
+    label.textContent = ui.label;
+
+    const input = document.createElement("input");
+    input.type = "button";
+    input.onmousedown = e => {
+      dsp.setParamValue(ui.address, 1);
+    };
+    input.onmouseleave = e => {
+      dsp.setParamValue(ui.address, 0);
+    };
+    input.onmouseup = e => {
+      dsp.setParamValue(ui.address, 0);
+    };
+
+    container.appendChild(label);
+    container.appendChild(input);
+    return container;
+  } else if (ui.type === "checkbox") {
+    const container = document.createElement("div");
+
+    const label = document.createElement("label");
+    label.style.display = "inline-block";
+    label.style.width = "200px";
+    label.textContent = ui.label;
+    container.appendChild(label);
+
+    const input = document.createElement("input");
+    input.type = "checkbox";
+    input.checked = false;
+    input.onclick = e => {
+      dsp.setParamValue(ui.address, input.checked ? 1 : 0);
+    };
+    container.appendChild(input);
+
+    return container;
   }
-  return groupContainer;
+  console.log(`type ${(ui as any).type} is not implemented yet`);
+  console.log(ui);
+  return null;
 }
 
 // Attach Events
