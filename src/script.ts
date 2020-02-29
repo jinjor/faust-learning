@@ -90,13 +90,10 @@ function createUI(ui: UI): HTMLElement {
   } else if (ui.type === "button") {
     const container = document.createElement("div");
 
-    const label = document.createElement("label");
-    label.style.display = "inline-block";
-    label.style.width = "200px";
-    label.textContent = ui.label;
-
     const input = document.createElement("input");
     input.type = "button";
+    input.style.width = "100px";
+    input.value = ui.label;
     input.onmousedown = e => {
       dsp.setParamValue(ui.address, 1);
     };
@@ -107,7 +104,6 @@ function createUI(ui: UI): HTMLElement {
       dsp.setParamValue(ui.address, 0);
     };
 
-    container.appendChild(label);
     container.appendChild(input);
     return container;
   } else if (ui.type === "checkbox") {
