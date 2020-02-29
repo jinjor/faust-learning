@@ -11,7 +11,7 @@
     "typescript": "^3.8.2"
   },
   "scripts": {
-    "start": "run-s build:* && run-p watch:* server",
+    "start": "run-p build:* watch:* server",
     "build:dsp": "faust2wasm -worklet src/*.dsp && mv *.{js,wasm} public/assets/js/",
     "build:ts": "tsc -p src",
     "watch:dsp": "chokidar \"src/*.dsp\" -c \"npm run build:dsp\"",

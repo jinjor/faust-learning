@@ -42,7 +42,11 @@ function createGroup(ui: ui.HGroup | ui.VGroup): HTMLElement {
     const control = document.createElement("div");
     control.style.paddingLeft = "20px";
 
-    if (item.type === "hslider" || item.type === "vslider") {
+    if (
+      item.type === "hslider" ||
+      item.type === "vslider" ||
+      item.type === "nentry"
+    ) {
       const label = document.createElement("label");
       label.style.display = "inline-block";
       label.style.width = "200px";
@@ -94,6 +98,9 @@ function createGroup(ui: ui.HGroup | ui.VGroup): HTMLElement {
       control.appendChild(input);
     } else if (item.type === "vgroup" || item.type === "hgroup") {
       control.appendChild(createGroup(item));
+    } else {
+      console.log(`type ${(item as any).type} is not implemented yet`);
+      console.log(item);
     }
     groupContainer.appendChild(control);
   }

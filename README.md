@@ -11,4 +11,4 @@ Personal sandbox for learning [Faust](http://faust.grame.fr/).
 
 ## Run
 
-`npm start` and open `http://localhost:8080`.
+`npm -s start` and open `http://localhost:8080`.

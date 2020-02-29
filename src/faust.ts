@@ -45,6 +45,17 @@ export namespace ui {
     max: number;
     step: number;
   };
+  export type NEntry = {
+    type: "nentry";
+    label: string;
+    address: string;
+    index: number;
+    meta: { [key: string]: string }[];
+    init: number;
+    min: number;
+    max: number;
+    step: number;
+  };
   export type Button = {
     type: "button";
     label: string;
@@ -66,6 +77,7 @@ export type UI =
   | ui.HGroup
   | ui.HSlider
   | ui.VSlider
+  | ui.NEntry
   | ui.Button
   | ui.Checkbox;
 
