@@ -1,4 +1,9 @@
 import { FaustNode, FaustNodeDescription, UI } from "./faust.js";
+import {
+  MIDIAccess,
+  MIDIConnectionEvent,
+  MIDIMessageEvent
+} from "./midi-types.js";
 const Keyboard = customElements.get("x-keyboard"); // this is closed source yet.
 
 const assetPath = "assets/js";
@@ -30,16 +35,20 @@ function updateElements() {
   if (!keyboardContainer.hasChildNodes()) {
     const el = new Keyboard({
       onDown: async (e: any) => {
-        // not supported yet
-        // dsp.midiMessage([0x90, e.note, 127]);
-        dsp.midiMessage([0xb0, 16, e.note]);
-        dsp.setParamValue("/midi/gate", 1);
+        if (dsp) {
+          // not supported yet
+          // dsp.midiMessage([0x90, e.note, 127]);
+          dsp.midiMessage([0xb0, 16, e.note]);
+          dsp.setParamValue("/midi/gate", 1);
+        }
         console.log("down", e);
       },
       onUp: (e: any) => {
-        // not supported yet
-        // dsp.midiMessage([0x80, e.note, 127]);
-        dsp.setParamValue("/midi/gate", 0);
+        if (dsp) {
+          // not supported yet
+          // dsp.midiMessage([0x80, e.note, 127]);
+          dsp.setParamValue("/midi/gate", 0);
+        }
         console.log("up", e);
       }
     });
@@ -166,6 +175,11 @@ stopButton.addEventListener("click", async () => {
 });
 
 async function init() {
+  await initDSP();
+  await initMidi();
+  updateElements();
+}
+async function initDSP() {
   const factory = new (window as any)[nodeName](audioCtx, assetPath);
   dsp = await factory.load();
   console.log(dsp.inputChannelCount());
@@ -173,6 +187,31 @@ async function init() {
   console.log(dsp.getParams());
   console.log(dsp.getDescriptor());
   console.log(JSON.parse(dsp.getJSON()));
-  updateElements();
+}
+async function initMidi() {
+  (navigator as any).requestMIDIAccess().then((midiAccess: MIDIAccess) => {
+    for (let input of midiAccess.inputs.values()) {
+      console.log(input.name, input.connection, input.state);
+      input.onmidimessage = (e: MIDIMessageEvent) => {
+        if (dsp) {
+          const message = [e.data[0], e.data[1], e.data[2]];
+          if (message[0] === 0x90) {
+            dsp.midiMessage([0xb0, 16, e.data[1]]);
+            dsp.setParamValue("/midi/gate", 1);
+          } else if (message[0] === 0x80) {
+            dsp.setParamValue("/midi/gate", 0);
+          } else {
+            dsp.midiMessage(message);
+          }
+        }
+      };
+      input.onstatechange = (e: MIDIConnectionEvent) => {
+        console.log(input.name, input.connection, input.state);
+      };
+    }
+    for (let output of midiAccess.outputs.values()) {
+      console.log(output.name, output.connection, output.state);
+    }
+  });
 }
 init();
