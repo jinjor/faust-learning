@@ -24,8 +24,8 @@ constant = environment {
 // process = _~+(1);
 
 // Peak Equalizer
-nBands = 8;
-filterBank(N) = hgroup("Filter Bank",seq(i,N,oneBand(i)))
+nBands = 4;
+filterBank(N) = hgroup("[3]EQ",seq(i,N,oneBand(i)))
 with {
     oneBand(j) = vgroup("[%j]Band %a",fi.peak_eq(l,f,b))
     with {
@@ -35,7 +35,7 @@ with {
         b = f/hslider("[0]Q[style:knob]",1,1,50,0.01) : si.smoo;
     };
 };
-bandFilter = filterBank(nBands);
+eq = filterBank(nBands);
 
 // AM Synth
 // freq = hslider("[0]freq",440,50,3000,0.01);
@@ -80,22 +80,23 @@ bandFilter = filterBank(nBands);
 // s2 = nentry("Selector",0,0,1,1);
 // sig = os.osc(440),os.sawtooth(440) : select2(s2);
 
-gate = button("[0]gate");
-
-adsrGroup(x) = tgroup("ADSR",x);
+adsrGroup(x) = vgroup("[1]ADSR",x);
 a = adsrGroup(hslider("[1]A",0.01,0.01,1,0.01) : si.smoo);
 d = adsrGroup(hslider("[2]D",0.01,0.01,1,0.01) : si.smoo);
 s = adsrGroup(hslider("[3]S",0.8,0,1,0.01) : si.smoo);
 r = adsrGroup(hslider("[4]R",0.1,0.01,1,0.01) : si.smoo);
-gain = hslider("gain",0.5,0,1,0.01);
+gain = adsrGroup(hslider("[5]gain",0.5,0,1,0.01) : si.smoo);
 envelope = en.adsr(a,d,s,r,gate)*gain;
 
-ctFreq = hslider("[6]cutoffFrequency",1600,50,10000,0.01) : si.smoo;
-q = hslider("[7]q",5,1,30,0.1) : si.smoo;
-filterGain = hslider("[8]filterGain",1,0,1,0.01) : si.smoo;
+filterGroup(x) = vgroup("[2]Filter",x);
+ctFreq     = filterGroup(hslider("[1]cutoffFrequency",1600,50,10000,0.01)) : si.smoo;
+q          = filterGroup(hslider("[2]q",5,1,30,0.1)) : si.smoo;
+filterGain = filterGroup(hslider("[3]gain",1,0,1,0.01)) : si.smoo;
 
-reverb = dm.zita_light;
+reverb = vgroup("[4]Reverb", dm.zita_light);
+
+gate = button("[5]Gate");
 
 // bypass = checkbox("[4]bypass") * (-1) + 1: si.smoo;
 // process = no.noise * envelope : fi.resonlp(ctFreq,q,filterGain) <: reverb;
-process = os.sawtooth(442) * envelope : fi.resonlp(ctFreq,q,filterGain) : bandFilter <: reverb;
+process = os.sawtooth(442) * envelope : fi.resonlp(ctFreq,q,filterGain) : eq <: reverb;
