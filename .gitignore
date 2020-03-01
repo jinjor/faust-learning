@@ -1,3 +1,5 @@
 faust
 node_modules
 public/assets
+*.js
+*.wasm
