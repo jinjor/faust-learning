@@ -7,8 +7,8 @@ import {
 const Keyboard = customElements.get("x-keyboard"); // this is closed source yet.
 
 const assetPath = "assets/js";
-// const nodeName = "noise";
-const nodeName = "midi";
+// const nodeName = "Synth";
+const nodeName = "MidiTestPoly";
 
 // State
 let audioCtx = new AudioContext();
@@ -24,7 +24,7 @@ const keyboardContainer = document.getElementById("keyboard");
 // Update Elements
 function updateElements() {
   if (dsp != null && !paramsContainer.hasChildNodes()) {
-    const json = JSON.parse(dsp.getJSON()) as FaustNodeDescription;
+    const json = jsonParseFix(dsp.getJSON()) as FaustNodeDescription;
     for (const ui of json.ui) {
       paramsContainer.appendChild(createUI(ui));
     }
@@ -35,21 +35,16 @@ function updateElements() {
   if (!keyboardContainer.hasChildNodes()) {
     const el = new Keyboard({
       onDown: async (e: any) => {
-        if (dsp) {
-          // not supported yet
-          // dsp.midiMessage([0x90, e.note, 127]);
-          dsp.midiMessage([0xb0, 16, e.note]);
-          dsp.setParamValue("/midi/gate", 1);
-        }
         console.log("down", e);
+        if (dsp) {
+          dsp.keyOn(0, e.note, 100);
+        }
       },
       onUp: (e: any) => {
-        if (dsp) {
-          // not supported yet
-          // dsp.midiMessage([0x80, e.note, 127]);
-          dsp.setParamValue("/midi/gate", 0);
-        }
         console.log("up", e);
+        if (dsp) {
+          dsp.keyOff(0, e.note, 100);
+        }
       }
     });
     keyboardContainer.appendChild(el);
@@ -179,14 +174,30 @@ async function init() {
   await initMidi();
   updateElements();
 }
+
+function jsonParseFix(json: string) {
+  try {
+    return JSON.parse(json);
+  } catch (e) {
+    console.log("Failed to parse JSON, try another way...");
+    let a;
+    eval(`a=` + json);
+    return a;
+  }
+}
+
 async function initDSP() {
-  const factory = new (window as any)[nodeName](audioCtx, assetPath);
+  // const factory = new (window as any)[nodeName](audioCtx, assetPath);// non-poly
+  const factory = new (window as any)[nodeName](audioCtx, 16, assetPath); // poly
+
   dsp = await factory.load();
+  console.log(dsp);
   console.log(dsp.inputChannelCount());
   console.log(dsp.outputChannelCount());
   console.log(dsp.getParams());
   console.log(dsp.getDescriptor());
-  console.log(JSON.parse(dsp.getJSON()));
+  console.log(dsp.getJSON());
+  console.log(jsonParseFix(dsp.getJSON()));
 }
 async function initMidi() {
   (navigator as any).requestMIDIAccess().then((midiAccess: MIDIAccess) => {
@@ -195,14 +206,7 @@ async function initMidi() {
       input.onmidimessage = (e: MIDIMessageEvent) => {
         if (dsp) {
           const message = [e.data[0], e.data[1], e.data[2]];
-          if (message[0] === 0x90) {
-            dsp.midiMessage([0xb0, 16, e.data[1]]);
-            dsp.setParamValue("/midi/gate", 1);
-          } else if (message[0] === 0x80) {
-            dsp.setParamValue("/midi/gate", 0);
-          } else {
-            dsp.midiMessage(message);
-          }
+          dsp.midiMessage(message);
         }
       };
       input.onstatechange = (e: MIDIConnectionEvent) => {

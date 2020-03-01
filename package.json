@@ -12,7 +12,7 @@
   },
   "scripts": {
     "start": "run-p build:* watch:* server",
-    "build:dsp": "faust2wasm -worklet src/*.dsp && mv *.{js,wasm} public/assets/js/",
+    "build:dsp": "faust2wasm -poly -worklet src/*.dsp && mv *.{js,wasm} public/assets/js/",
     "build:ts": "tsc -p src",
     "watch:dsp": "chokidar \"src/*.dsp\" -c \"npm run build:dsp\"",
     "watch:ts": "chokidar \"src/*.ts\" -c \"npm run build:ts\"",

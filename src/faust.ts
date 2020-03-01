@@ -170,6 +170,29 @@ export interface FaustNode extends AudioWorkletNode {
   getDescriptor(): any;
 
   /**
+   * Instantiates a new polyphonic voice.
+   *
+   * @param channel - the MIDI channel (0..15, not used for now)
+   * @param pitch - the MIDI pitch (0..127)
+   * @param velocity - the MIDI velocity (0..127)
+   */
+  keyOn(channel: number, pitch: number, velocity: number): void;
+
+  /**
+   * De-instantiates a polyphonic voice.
+   *
+   * @param channel - the MIDI channel (0..15, not used for now)
+   * @param pitch - the MIDI pitch (0..127)
+   * @param velocity - the MIDI velocity (0..127)
+   */
+  keyOff(channel: number, pitch: number, velocity: number): void;
+
+  /**
+   * Gently terminates all the active voices.
+   */
+  allNotesOff(): void;
+
+  /**
    * Control change
    *
    * @param channel - the MIDI channel (0..15, not used for now)
