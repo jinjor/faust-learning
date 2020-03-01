@@ -113,4 +113,5 @@ gate = button("[5]Gate");
 
 // bypass = checkbox("[4]bypass") * (-1) + 1: si.smoo;
 // process = no.noise * envelope : fi.resonlp(ctFreq,q,filterGain) <: reverb;
-process = os.sawtooth(442) * envelope : fi.resonlp(ctFreq,q,filterGain) : eq <: reverb;
+process = os.sawtooth(442) * envelope : fi.resonlp(ctFreq,q,filterGain) : eq <: _,_;
+effect = reverb;
