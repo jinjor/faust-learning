@@ -3,19 +3,65 @@ declare author "jinjor";
 declare copyright "(c)jinjor 2020";
 declare version "0.0.1";
 declare license "MIT";
-
-declare options "[midi:on]";
+declare options "[midi:on][nvoices:12]";
 
 import("stdfaust.lib");
 
-constant = environment {
-  pi = 3.14159;
-  e = 2,718;
+//=============== PROCESS ====================================================//
+
+midiIn = environment {
+  freq = f*bend with {
+    f = hslider("freq",300,50,2000,0.01);
+    bend = hslider("bend[midi:pitchwheel]",1,0,10,0.01) : si.polySmooth(gate,0.999,1);
+  };
+  gain = hslider("gain",0.5,0,1,0.01);
+  gate = t+s : min(1) with {
+    s = hslider("sustain[midi:ctrl 64]",0,0,1,1);
+    t = button("gate");
+  };
 };
 
-// Function Definitions 
-// linear2db(x) = 20*log10(x);
-// linear2db = \(x).(20*log10(x));
+saw = os.sawtooth(midiIn.freq);
+
+envelope = en.adsr(a,d,s,r,midiIn.gate) with {
+  adsrGroup(x) = vgroup("[1]ADSR",x);
+  a = adsrGroup(hslider("[1]A",0.01,0.01,1,0.01) : si.smoo);
+  d = adsrGroup(hslider("[2]D",0.01,0.01,1,0.01) : si.smoo);
+  s = adsrGroup(hslider("[3]S",0.8,0,1,0.01) : si.smoo);
+  r = adsrGroup(hslider("[4]R",0.1,0.01,1,0.01) : si.smoo);
+};
+
+process = saw * envelope * midiIn.gate;
+
+//=============== EFFECT =====================================================//
+
+filter = fi.resonlp(ctFreq,q,filterGain) with {
+  filterGroup(x) = vgroup("[2]Filter",x);
+  ctFreq     = filterGroup(hslider("[1]cutoffFrequency",1600,50,10000,0.01)) : si.smoo;
+  q          = filterGroup(hslider("[2]q",5,1,30,0.1)) : si.smoo;
+  filterGain = filterGroup(hslider("[3]gain",1,0,1,0.01)) : si.smoo;
+};
+
+nBands = 4;
+eq = filterBank(nBands) with {
+  filterBank(N) = hgroup("[3]EQ",seq(i,N,oneBand(i))) with {
+    oneBand(j) = vgroup("[%j]Band %a",fi.peak_eq(l,f,b))
+    with {
+        a = j+1; // just so that band numbers don't start at 0
+        l = vslider("[2]Level[unit:db]",0,-70,12,0.01) : si.smoo;
+        f = hslider("[1]Freq",(80+(1000*8/N*(j+1)-80)),20,20000,0.01) : si.smoo;
+        b = f/hslider("[0]Q[style:knob]",1,1,50,0.01) : si.smoo;
+    };
+  };
+};
+
+reverb = vgroup("[4]Reverb", dm.zita_light);
+
+effect = filter : eq <: reverb;
+
+
+
+// NOTE:
 
 // Pattern matching
 // duplicate(1,x) = x;
@@ -24,20 +70,6 @@ constant = environment {
 
 // Recursive (timer)
 // process = _~+(1);
-
-// Peak Equalizer
-nBands = 4;
-filterBank(N) = hgroup("[3]EQ",seq(i,N,oneBand(i)))
-with {
-    oneBand(j) = vgroup("[%j]Band %a",fi.peak_eq(l,f,b))
-    with {
-        a = j+1; // just so that band numbers don't start at 0
-        l = vslider("[2]Level[unit:db]",0,-70,12,0.01) : si.smoo;
-        f = hslider("[1]Freq",(80+(1000*8/N*(j+1)-80)),20,20000,0.01) : si.smoo;
-        b = f/hslider("[0]Q[style:knob]",1,1,50,0.01) : si.smoo;
-    };
-};
-eq = filterBank(nBands);
 
 // AM Synth
 // freq = hslider("[0]freq",440,50,3000,0.01);
@@ -93,25 +125,3 @@ eq = filterBank(nBands);
 // [scale:xx] log, exp
 // [tooltip:xx]
 // [hidden:xx]
-
-adsrGroup(x) = vgroup("[1]ADSR",x);
-a = adsrGroup(hslider("[1]A",0.01,0.01,1,0.01) : si.smoo);
-d = adsrGroup(hslider("[2]D",0.01,0.01,1,0.01) : si.smoo);
-s = adsrGroup(hslider("[3]S",0.8,0,1,0.01) : si.smoo);
-r = adsrGroup(hslider("[4]R",0.1,0.01,1,0.01) : si.smoo);
-gain = adsrGroup(hslider("[5]gain",0.5,0,1,0.01) : si.smoo);
-envelope = en.adsr(a,d,s,r,gate)*gain;
-
-filterGroup(x) = vgroup("[2]Filter",x);
-ctFreq     = filterGroup(hslider("[1]cutoffFrequency",1600,50,10000,0.01)) : si.smoo;
-q          = filterGroup(hslider("[2]q",5,1,30,0.1)) : si.smoo;
-filterGain = filterGroup(hslider("[3]gain",1,0,1,0.01)) : si.smoo;
-
-reverb = vgroup("[4]Reverb", dm.zita_light);
-
-gate = button("[5]Gate");
-
-// bypass = checkbox("[4]bypass") * (-1) + 1: si.smoo;
-// process = no.noise * envelope : fi.resonlp(ctFreq,q,filterGain) <: reverb;
-process = os.sawtooth(442) * envelope : fi.resonlp(ctFreq,q,filterGain) : eq <: _,_;
-effect = reverb;

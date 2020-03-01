@@ -7,8 +7,7 @@ import {
 const Keyboard = customElements.get("x-keyboard"); // this is closed source yet.
 
 const assetPath = "assets/js";
-// const nodeName = "Synth";
-const nodeName = "MidiTestPoly";
+const nodeName = "SynthPoly";
 
 // State
 let audioCtx = new AudioContext();
